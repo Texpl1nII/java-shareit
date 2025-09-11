@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
 
@@ -28,6 +29,7 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        checkEmailDuplicate(user.getEmail(), null);
         user.setId(nextId++);
         users.put(user.getId(), user);
         return user;
@@ -44,7 +46,8 @@ public class UserService {
             existingUser.setName(user.getName());
         }
 
-        if (user.getEmail() != null) {
+        if (user.getEmail() != null && !user.getEmail().equals(existingUser.getEmail())) {
+            checkEmailDuplicate(user.getEmail(), userId);
             existingUser.setEmail(user.getEmail());
         }
 
@@ -56,5 +59,15 @@ public class UserService {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
         users.remove(userId);
+    }
+
+    private void checkEmailDuplicate(String email, Long userId) {
+        boolean emailExists = users.values().stream()
+                .anyMatch(user -> user.getEmail().equals(email) &&
+                        (userId == null || !user.getId().equals(userId)));
+
+        if (emailExists) {
+            throw new ConflictException("Пользователь с email " + email + " уже существует");
+        }
     }
 }
