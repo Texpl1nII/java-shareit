@@ -55,17 +55,8 @@ public class ItemService {
             throw new NotFoundException("Вы не являетесь владельцем вещи с ID " + itemId);
         }
 
-        if (itemDto.getName() != null) {
-            existingItem.setName(itemDto.getName());
-        }
-
-        if (itemDto.getDescription() != null) {
-            existingItem.setDescription(itemDto.getDescription());
-        }
-
-        if (itemDto.getAvailable() != null) {
-            existingItem.setAvailable(itemDto.getAvailable());
-        }
+        // Используем новый метод маппера
+        ItemMapper.updateItemFromDto(existingItem, itemDto);
 
         return itemMapper.toItemDto(existingItem);
     }

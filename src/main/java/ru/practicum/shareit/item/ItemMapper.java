@@ -25,4 +25,23 @@ public class ItemMapper {
         item.setRequestId(itemDto.getRequestId());
         return item;
     }
+
+    // Новый метод для обновления полей
+    public static void updateItemFromDto(Item existingItem, ItemDto itemDto) {
+        if (itemDto.getName() != null) {
+            existingItem.setName(itemDto.getName());
+        }
+
+        if (itemDto.getDescription() != null) {
+            existingItem.setDescription(itemDto.getDescription());
+        }
+
+        if (itemDto.getAvailable() != null) {
+            existingItem.setAvailable(itemDto.getAvailable());
+        }
+
+        if (itemDto.getRequestId() != null) {
+            existingItem.setRequestId(itemDto.getRequestId());
+        }
+    }
 }

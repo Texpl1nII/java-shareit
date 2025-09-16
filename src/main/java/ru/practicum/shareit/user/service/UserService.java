@@ -6,15 +6,13 @@ import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final Map<Long, User> users = new HashMap<>();
+    private final Set<String> emails = new HashSet<>();
     private Long nextId = 1L;
 
     public List<User> getAllUsers() {
@@ -29,9 +27,13 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        checkEmailDuplicate(user.getEmail(), null);
+        if (emails.contains(user.getEmail())) {
+            throw new ConflictException("Пользователь с email " + user.getEmail() + " уже существует");
+        }
+
         user.setId(nextId++);
         users.put(user.getId(), user);
+        emails.add(user.getEmail());
         return user;
     }
 
@@ -47,8 +49,13 @@ public class UserService {
         }
 
         if (user.getEmail() != null && !user.getEmail().equals(existingUser.getEmail())) {
-            checkEmailDuplicate(user.getEmail(), userId);
+            if (emails.contains(user.getEmail())) {
+                throw new ConflictException("Пользователь с email " + user.getEmail() + " уже существует");
+            }
+
+            emails.remove(existingUser.getEmail());
             existingUser.setEmail(user.getEmail());
+            emails.add(user.getEmail());
         }
 
         return existingUser;
@@ -58,16 +65,9 @@ public class UserService {
         if (!users.containsKey(userId)) {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
+
+        String email = users.get(userId).getEmail();
         users.remove(userId);
-    }
-
-    private void checkEmailDuplicate(String email, Long userId) {
-        boolean emailExists = users.values().stream()
-                .anyMatch(user -> user.getEmail().equals(email) &&
-                        (userId == null || !user.getId().equals(userId)));
-
-        if (emailExists) {
-            throw new ConflictException("Пользователь с email " + email + " уже существует");
-        }
+        emails.remove(email);
     }
 }

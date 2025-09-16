@@ -6,38 +6,36 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
-
 @RestControllerAdvice
 public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFoundException(final NotFoundException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleNotFoundException(final NotFoundException exception) {
+        return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleConflictException(final ConflictException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleConflictException(final ConflictException exception) {
+        return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleBadRequestException(final BadRequestException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleBadRequestException(final BadRequestException exception) {
+        return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidationException(final MethodArgumentNotValidException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleValidationException(final MethodArgumentNotValidException exception) {
+        return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleThrowable(final Throwable e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleThrowable(final Throwable exception) {
+        return new ErrorResponse(exception.getMessage());
     }
 }
