@@ -89,7 +89,7 @@ public class BookingService {
         List<Booking> bookings;
         LocalDateTime now = LocalDateTime.now();
 
-        switch(state.toUpperCase()) {
+        switch (state.toUpperCase()) {
             case "ALL":
                 bookings = bookingRepository.findByBookerIdOrderByStartDesc(userId);
                 break;
@@ -123,7 +123,7 @@ public class BookingService {
         List<Booking> bookings;
         LocalDateTime now = LocalDateTime.now();
 
-        switch(state.toUpperCase()) {
+        switch (state.toUpperCase()) {
             case "ALL":
                 bookings = bookingRepository.findByItemOwnerIdOrderByStartDesc(userId);
                 break;
