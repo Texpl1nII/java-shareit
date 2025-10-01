@@ -5,8 +5,9 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 
 @Component
 public class BookingMapper {
+
     public BookingDto toBookingDto(Booking booking) {
-        return new BookingDto(
+        BookingDto bookingDto = new BookingDto(
                 booking.getId(),
                 booking.getStart(),
                 booking.getEnd(),
@@ -14,5 +15,6 @@ public class BookingMapper {
                 booking.getBooker().getId(),
                 booking.getStatus()
         );
+        return bookingDto;
     }
 }

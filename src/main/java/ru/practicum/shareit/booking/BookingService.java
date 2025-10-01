@@ -2,9 +2,8 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.Booking;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking.BookingStatus;
-import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -20,12 +19,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserService userService;
     private final BookingMapper bookingMapper;
 
+    @Transactional
     public BookingDto createBooking(BookingDto bookingDto, Long userId) {
         User booker = userService.getUserById(userId);
 
@@ -55,6 +56,7 @@ public class BookingService {
         return bookingMapper.toBookingDto(savedBooking);
     }
 
+    @Transactional
     public BookingDto approveBooking(Long bookingId, Boolean approved, Long userId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с ID " + bookingId + " не найдено"));
@@ -84,7 +86,7 @@ public class BookingService {
     }
 
     public List<BookingDto> getUserBookings(Long userId, String state) {
-        User user = userService.getUserById(userId);
+        userService.getUserById(userId); // Проверка существования пользователя
 
         List<Booking> bookings;
         LocalDateTime now = LocalDateTime.now();
@@ -109,7 +111,7 @@ public class BookingService {
                 bookings = bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
                 break;
             default:
-                throw new BadRequestException("Некорректный статус бронирования: " + state);
+                throw new BadRequestException("Unknown state: " + state);
         }
 
         return bookings.stream()
@@ -118,7 +120,7 @@ public class BookingService {
     }
 
     public List<BookingDto> getOwnerBookings(Long userId, String state) {
-        User owner = userService.getUserById(userId);
+        userService.getUserById(userId); // Проверка существования пользователя
 
         List<Booking> bookings;
         LocalDateTime now = LocalDateTime.now();
@@ -143,7 +145,7 @@ public class BookingService {
                 bookings = bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
                 break;
             default:
-                throw new BadRequestException("Некорректный статус бронирования: " + state);
+                throw new BadRequestException("Unknown state: " + state);
         }
 
         return bookings.stream()

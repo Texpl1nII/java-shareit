@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemService {
-    // Изменим на репозиторий вместо Map
     private final ItemRepository itemRepository;
     private final UserService userService;
     private final ItemMapper itemMapper;
@@ -56,6 +57,7 @@ public class ItemService {
         return itemDto;
     }
 
+    @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         User owner = userService.getUserById(userId);
 
@@ -66,6 +68,7 @@ public class ItemService {
         return itemMapper.toItemDto(savedItem);
     }
 
+    @Transactional
     public ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId) {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
@@ -74,7 +77,17 @@ public class ItemService {
             throw new NotFoundException("Вы не являетесь владельцем вещи с ID " + itemId);
         }
 
-        ItemMapper.updateItemFromDto(existingItem, itemDto);
+        if (itemDto.getName() != null) {
+            existingItem.setName(itemDto.getName());
+        }
+
+        if (itemDto.getDescription() != null) {
+            existingItem.setDescription(itemDto.getDescription());
+        }
+
+        if (itemDto.getAvailable() != null) {
+            existingItem.setAvailable(itemDto.getAvailable());
+        }
 
         Item updatedItem = itemRepository.save(existingItem);
         return itemMapper.toItemDto(updatedItem);
@@ -94,6 +107,7 @@ public class ItemService {
     }
 
     // Новый метод для создания комментариев
+    @Transactional
     public CommentDto createComment(Long itemId, CommentDto commentDto, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
@@ -107,10 +121,13 @@ public class ItemService {
             throw new BadRequestException("Пользователь не брал эту вещь в аренду");
         }
 
-        Comment comment = CommentMapper.toComment(commentDto, item, author);
+        Comment comment = new Comment();
+        comment.setText(commentDto.getText());
+        comment.setItem(item);
+        comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
-        return CommentMapper.toCommentDto(savedComment);
+        return commentMapper.toCommentDto(savedComment);
     }
 }
