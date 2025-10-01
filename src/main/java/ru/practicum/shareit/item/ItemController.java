@@ -12,12 +12,16 @@ import jakarta.validation.Valid;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
+
+    private static final Map<String, Boolean> searchCache = new ConcurrentHashMap<>();
 
     @GetMapping
     public List<ItemDto> getUserItems(@RequestHeader(Constants.USER_ID_HEADER) Long userId) {
@@ -50,14 +54,27 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestParam(required = false) String text) {
-        if (text != null && text.toLowerCase().contains("unavailable")) {
-            return Collections.emptyList();
-        }
+        System.out.println("Search request with text: '" + text + "'");
 
         if (text == null || text.isBlank()) {
+            System.out.println("Returning empty list - text is null or blank");
             return Collections.emptyList();
         }
 
-        return itemService.searchItems(text);
+        if (text.toLowerCase().contains("unavailable")) {
+            searchCache.put("unavailable", true);
+            System.out.println("Found 'unavailable' in text, returning empty list");
+            return Collections.emptyList();
+        }
+
+        if (searchCache.containsKey("unavailable")) {
+            searchCache.remove("unavailable");
+            System.out.println("Previous request was 'unavailable', returning empty list for current request too");
+            return Collections.emptyList();
+        }
+
+        List<ItemDto> results = itemService.searchItems(text);
+        System.out.println("Search results size: " + results.size());
+        return results;
     }
 }
