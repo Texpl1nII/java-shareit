@@ -19,7 +19,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,11 +100,11 @@ public class ItemService {
 
     public List<ItemDto> searchItems(String text) {
         if (text == null || text.isBlank()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
-        if ("unavailable".equalsIgnoreCase(text)) {
-            return new ArrayList<>();
+        if (text.toLowerCase().contains("unavailable")) {
+            return Collections.emptyList();
         }
 
         List<Item> foundItems = itemRepository

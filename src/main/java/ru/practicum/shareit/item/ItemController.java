@@ -10,6 +10,7 @@ import ru.practicum.shareit.Constants;
 
 import jakarta.validation.Valid;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -48,7 +49,10 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text) {
+    public List<ItemDto> searchItems(@RequestParam(required = false) String text) {
+        if (text == null || text.isBlank()) {
+            return Collections.emptyList();
+        }
         return itemService.searchItems(text);
     }
 }
