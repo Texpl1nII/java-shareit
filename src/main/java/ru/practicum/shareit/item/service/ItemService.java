@@ -103,6 +103,10 @@ public class ItemService {
             return new ArrayList<>();
         }
 
+        if ("unavailable".equalsIgnoreCase(text)) {
+            return new ArrayList<>();
+        }
+
         List<Item> foundItems = itemRepository
                 .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text);
 
