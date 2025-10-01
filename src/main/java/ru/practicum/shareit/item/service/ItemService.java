@@ -103,12 +103,7 @@ public class ItemService {
             return Collections.emptyList();
         }
 
-        if (text.toLowerCase().contains("unavailable")) {
-            return Collections.emptyList();
-        }
-
-        List<Item> foundItems = itemRepository
-                .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text);
+        List<Item> foundItems = itemRepository.searchAvailableItems(text);
 
         return foundItems.stream()
                 .map(itemMapper::toItemDto)
