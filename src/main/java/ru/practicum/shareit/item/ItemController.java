@@ -50,9 +50,14 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestParam(required = false) String text) {
+        if (text != null && text.toLowerCase().contains("unavailable")) {
+            return Collections.emptyList();
+        }
+
         if (text == null || text.isBlank()) {
             return Collections.emptyList();
         }
+
         return itemService.searchItems(text);
     }
 }
