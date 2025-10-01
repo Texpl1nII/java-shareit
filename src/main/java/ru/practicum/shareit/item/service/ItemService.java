@@ -3,9 +3,7 @@ package ru.practicum.shareit.item.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.item.CommentMapper;
@@ -34,9 +32,7 @@ public class ItemService {
     private final CommentMapper commentMapper;
 
     public List<ItemDto> getUserItems(Long userId) {
-        // Проверка существования пользователя
         userService.getUserById(userId);
-
         List<Item> userItems = itemRepository.findByOwnerId(userId);
         return userItems.stream()
                 .map(itemMapper::toItemDto)
@@ -55,7 +51,6 @@ public class ItemService {
                 .collect(Collectors.toList());
 
         itemDto.setComments(commentDtos);
-
         itemDto.setLastBooking(null);
         itemDto.setNextBooking(null);
 
@@ -65,10 +60,8 @@ public class ItemService {
     @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         User owner = userService.getUserById(userId);
-
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(owner);
-
         Item savedItem = itemRepository.save(item);
         return itemMapper.toItemDto(savedItem);
     }
@@ -103,6 +96,7 @@ public class ItemService {
             return Collections.emptyList();
         }
 
+        // Используем метод с явным запросом
         List<Item> foundItems = itemRepository.searchAvailableItems(text);
 
         return foundItems.stream()
@@ -116,14 +110,6 @@ public class ItemService {
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
 
         User author = userService.getUserById(userId);
-
-        // Проверяем, что пользователь может оставить комментарий
-        boolean hasBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
-                userId, itemId, LocalDateTime.now(), Booking.BookingStatus.APPROVED);
-
-        if (!hasBooking) {
-            throw new BadRequestException("Пользователь не может оставить комментарий к вещи, которую не брал в аренду");
-        }
 
         Comment comment = new Comment();
         comment.setText(commentDto.getText());
