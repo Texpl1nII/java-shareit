@@ -38,4 +38,10 @@ public class ErrorHandler {
     public ErrorResponse handleThrowable(final Throwable exception) {
         return new ErrorResponse(exception.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbiddenException(final ForbiddenException exception) {
+        return new ErrorResponse(exception.getMessage());
+    }
 }

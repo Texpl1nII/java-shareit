@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.Booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -62,7 +63,8 @@ public class BookingService {
                 .orElseThrow(() -> new NotFoundException("Бронирование с ID " + bookingId + " не найдено"));
 
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Только владелец вещи может подтвердить бронирование");
+            // Меняем с NotFoundException на ForbiddenException
+            throw new ForbiddenException("Только владелец вещи может подтвердить бронирование");
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {

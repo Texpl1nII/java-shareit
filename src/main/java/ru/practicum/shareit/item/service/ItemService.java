@@ -3,7 +3,9 @@ package ru.practicum.shareit.item.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.item.CommentMapper;
@@ -45,12 +47,13 @@ public class ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
 
+        ItemDto itemDto = itemMapper.toItemDto(item);
+
         List<Comment> comments = commentRepository.findByItemId(itemId);
         List<CommentDto> commentDtos = comments.stream()
                 .map(commentMapper::toCommentDto)
                 .collect(Collectors.toList());
 
-        ItemDto itemDto = itemMapper.toItemDto(item);
         itemDto.setComments(commentDtos);
 
         itemDto.setLastBooking(null);
@@ -115,14 +118,19 @@ public class ItemService {
 
         User author = userService.getUserById(userId);
 
-        LocalDateTime now = LocalDateTime.now();
+        // Проверяем, что пользователь может оставить комментарий
+        boolean hasBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
+                userId, itemId, LocalDateTime.now(), Booking.BookingStatus.APPROVED);
+
+        if (!hasBooking) {
+            throw new BadRequestException("Пользователь не может оставить комментарий к вещи, которую не брал в аренду");
+        }
 
         Comment comment = new Comment();
-        comment.setId(commentDto.getId());
         comment.setText(commentDto.getText());
         comment.setItem(item);
         comment.setAuthor(author);
-        comment.setCreated(now);
+        comment.setCreated(LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
         return commentMapper.toCommentDto(savedComment);
