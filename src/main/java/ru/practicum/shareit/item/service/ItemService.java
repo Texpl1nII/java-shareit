@@ -48,11 +48,16 @@ public class ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
 
-        // Получаем комментарии к вещи
         List<Comment> comments = commentRepository.findByItemId(itemId);
+        List<CommentDto> commentDtos = comments.stream()
+                .map(commentMapper::toCommentDto)
+                .collect(Collectors.toList());
 
         ItemDto itemDto = itemMapper.toItemDto(item);
-        // Здесь можно добавить код для заполнения информации о комментариях в itemDto
+        itemDto.setComments(commentDtos);
+
+        itemDto.setLastBooking(null);
+        itemDto.setNextBooking(null);
 
         return itemDto;
     }
@@ -114,18 +119,14 @@ public class ItemService {
 
         User author = userService.getUserById(userId);
 
-        boolean hasBookings = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
-                userId, itemId, LocalDateTime.now(), BookingStatus.APPROVED);
-
-        if (!hasBookings) {
-            throw new BadRequestException("Пользователь не брал эту вещь в аренду");
-        }
+        LocalDateTime now = LocalDateTime.now();
 
         Comment comment = new Comment();
+        comment.setId(commentDto.getId());
         comment.setText(commentDto.getText());
         comment.setItem(item);
         comment.setAuthor(author);
-        comment.setCreated(LocalDateTime.now());
+        comment.setCreated(now);
 
         Comment savedComment = commentRepository.save(comment);
         return commentMapper.toCommentDto(savedComment);
