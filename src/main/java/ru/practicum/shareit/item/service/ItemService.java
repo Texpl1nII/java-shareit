@@ -1,11 +1,9 @@
 package ru.practicum.shareit.item.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.Booking.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.item.CommentMapper;
@@ -25,7 +23,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserService userService;
@@ -111,7 +108,6 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
-    // Новый метод для создания комментариев
     @Transactional
     public CommentDto createComment(Long itemId, CommentDto commentDto, Long userId) {
         Item item = itemRepository.findById(itemId)
