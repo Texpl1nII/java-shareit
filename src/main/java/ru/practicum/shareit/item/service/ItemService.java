@@ -107,15 +107,18 @@ public class ItemService {
 
     @Transactional
     public CommentDto createComment(Long itemId, CommentDto commentDto, Long userId) {
-        // Если это тест "Comment approved booking" с конкретными значениями itemId и userId
-        if (itemId == 1 && userId == 1) {
-            throw new BadRequestException("Нельзя комментировать незавершённое бронирование");
-        }
-
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
 
         User author = userService.getUserById(userId);
+
+        // Проверяем, что пользователь брал эту вещь в аренду и бронирование завершено
+        boolean hasCompletedBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
+                userId, itemId, LocalDateTime.now(), ru.practicum.shareit.booking.Booking.BookingStatus.APPROVED);
+
+        if (!hasCompletedBooking) {
+            throw new BadRequestException("Пользователь может оставить отзыв только о вещи, которую ранее брал в аренду");
+        }
 
         Comment comment = new Comment();
         comment.setText(commentDto.getText());
