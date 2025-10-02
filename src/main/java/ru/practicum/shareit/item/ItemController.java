@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -42,16 +41,11 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    @ResponseStatus(HttpStatus.BAD_REQUEST) // Устанавливаем статус 400 для всех запросов создания комментариев
-    public ResponseEntity<String> createComment(
+    public CommentDto createComment(
             @PathVariable Long itemId,
             @Valid @RequestBody CommentDto commentDto,
             @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
-
-        // Возвращаем ошибку для теста "Comment approved booking"
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body("Нельзя комментировать незавершённое бронирование");
+        return itemService.createComment(itemId, commentDto, userId);
     }
 
     @GetMapping("/search")
