@@ -11,18 +11,14 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    // Бронирования пользователя
     List<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
 
-    // Текущие бронирования пользователя
     List<Booking> findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(
             Long bookerId, LocalDateTime start, LocalDateTime end);
 
-    // Завершенные бронирования пользователя
     List<Booking> findByBookerIdAndEndBeforeOrderByStartDesc(
             Long bookerId, LocalDateTime end);
 
-    // Будущие бронирования пользователя
     List<Booking> findByBookerIdAndStartAfterOrderByStartDesc(
             Long bookerId, LocalDateTime start);
 
