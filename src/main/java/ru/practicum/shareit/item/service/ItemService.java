@@ -61,7 +61,7 @@ public class ItemService {
     @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         User owner = userService.getUserById(userId);
-        Item item = ItemMapper.toItem(itemDto);
+        Item item = itemMapper.toItem(itemDto); // Исправлено: используем экземплярный метод вместо статического
         item.setOwner(owner);
         Item savedItem = itemRepository.save(item);
         return itemMapper.toItemDto(savedItem);

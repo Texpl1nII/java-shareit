@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
@@ -75,6 +74,7 @@ public class BookingService {
         return bookingMapper.toBookingDto(savedBooking);
     }
 
+    @Transactional(readOnly = true)
     public BookingDto getBookingById(Long bookingId, Long userId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с ID " + bookingId + " не найдено"));
@@ -86,6 +86,7 @@ public class BookingService {
         return bookingMapper.toBookingDto(booking);
     }
 
+    @Transactional(readOnly = true)
     public List<BookingDto> getUserBookings(Long userId, String state) {
         userService.getUserById(userId); // Проверка существования пользователя
 
@@ -120,6 +121,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<BookingDto> getOwnerBookings(Long userId, String state) {
         userService.getUserById(userId); // Проверка существования пользователя
 
