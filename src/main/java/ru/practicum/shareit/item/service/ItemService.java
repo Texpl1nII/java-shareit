@@ -1,78 +1,132 @@
 package ru.practicum.shareit.item.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.Comment;
+import ru.practicum.shareit.item.CommentMapper;
 import ru.practicum.shareit.item.ItemMapper;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemService {
-    private final Map<Long, Item> items = new HashMap<>();
+    private final ItemRepository itemRepository;
     private final UserService userService;
     private final ItemMapper itemMapper;
-    private Long nextId = 1L;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
+    private final CommentMapper commentMapper;
 
     public List<ItemDto> getUserItems(Long userId) {
-        return items.values().stream()
-                .filter(item -> item.getOwner().getId().equals(userId))
+        userService.getUserById(userId);
+        List<Item> userItems = itemRepository.findByOwnerId(userId);
+        return userItems.stream()
                 .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     public ItemDto getItemById(Long itemId, Long userId) {
-        if (!items.containsKey(itemId)) {
-            throw new NotFoundException("Вещь с ID " + itemId + " не найдена");
-        }
-        return itemMapper.toItemDto(items.get(itemId));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
+
+        ItemDto itemDto = itemMapper.toItemDto(item);
+
+        List<Comment> comments = commentRepository.findByItemId(itemId);
+        List<CommentDto> commentDtos = comments.stream()
+                .map(commentMapper::toCommentDto)
+                .collect(Collectors.toList());
+
+        itemDto.setComments(commentDtos);
+        itemDto.setLastBooking(null);
+        itemDto.setNextBooking(null);
+
+        return itemDto;
     }
 
+    @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
-        Item item = ItemMapper.toItem(itemDto);
-        item.setId(nextId++);
-        item.setOwner(userService.getUserById(userId));
-        items.put(item.getId(), item);
-        return itemMapper.toItemDto(item);
+        User owner = userService.getUserById(userId);
+        Item item = itemMapper.toItem(itemDto); // Исправлено: используем экземплярный метод вместо статического
+        item.setOwner(owner);
+        Item savedItem = itemRepository.save(item);
+        return itemMapper.toItemDto(savedItem);
     }
 
+    @Transactional
     public ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId) {
-        if (!items.containsKey(itemId)) {
-            throw new NotFoundException("Вещь с ID " + itemId + " не найдена");
-        }
-
-        Item existingItem = items.get(itemId);
+        Item existingItem = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
 
         if (!existingItem.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Вы не являетесь владельцем вещи с ID " + itemId);
         }
 
-        // Используем новый метод маппера
-        ItemMapper.updateItemFromDto(existingItem, itemDto);
+        if (itemDto.getName() != null) {
+            existingItem.setName(itemDto.getName());
+        }
 
-        return itemMapper.toItemDto(existingItem);
+        if (itemDto.getDescription() != null) {
+            existingItem.setDescription(itemDto.getDescription());
+        }
+
+        if (itemDto.getAvailable() != null) {
+            existingItem.setAvailable(itemDto.getAvailable());
+        }
+
+        Item updatedItem = itemRepository.save(existingItem);
+        return itemMapper.toItemDto(updatedItem);
     }
 
     public List<ItemDto> searchItems(String text) {
         if (text == null || text.isBlank()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
-        String lowerText = text.toLowerCase();
+        // Используем метод с явным запросом
+        List<Item> foundItems = itemRepository.searchAvailableItems(text);
 
-        return items.values().stream()
-                .filter(Item::getAvailable)
-                .filter(item -> item.getName().toLowerCase().contains(lowerText)
-                        || item.getDescription().toLowerCase().contains(lowerText))
+        return foundItems.stream()
                 .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public CommentDto createComment(Long itemId, CommentDto commentDto, Long userId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
+
+        User author = userService.getUserById(userId);
+
+        // Проверяем, что пользователь брал эту вещь в аренду и бронирование завершено
+        boolean hasCompletedBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
+                userId, itemId, LocalDateTime.now(), ru.practicum.shareit.booking.Booking.BookingStatus.APPROVED);
+
+        if (!hasCompletedBooking) {
+            throw new BadRequestException("Пользователь может оставить отзыв только о вещи, которую ранее брал в аренду");
+        }
+
+        Comment comment = new Comment();
+        comment.setText(commentDto.getText());
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setCreated(LocalDateTime.now());
+
+        Comment savedComment = commentRepository.save(comment);
+        return commentMapper.toCommentDto(savedComment);
     }
 }
