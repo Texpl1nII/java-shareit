@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -14,6 +15,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -31,6 +34,7 @@ public class ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final ItemRequestRepository itemRequestRepository; // Добавлен репозиторий для запросов
 
     public List<ItemDto> getUserItems(Long userId) {
         userService.getUserById(userId);
@@ -61,8 +65,18 @@ public class ItemService {
     @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         User owner = userService.getUserById(userId);
-        Item item = itemMapper.toItem(itemDto); // Исправлено: используем экземплярный метод вместо статического
+        Item item = itemMapper.toItem(itemDto);
         item.setOwner(owner);
+
+        // Проверка и установка requestId, если он указан
+        if (itemDto.getRequestId() != null) {
+            // Проверяем существование запроса
+            ItemRequest request = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос с ID " + itemDto.getRequestId() + " не найден"));
+
+            item.setRequestId(request.getId());
+        }
+
         Item savedItem = itemRepository.save(item);
         return itemMapper.toItemDto(savedItem);
     }
@@ -114,7 +128,7 @@ public class ItemService {
 
         // Проверяем, что пользователь брал эту вещь в аренду и бронирование завершено
         boolean hasCompletedBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
-                userId, itemId, LocalDateTime.now(), ru.practicum.shareit.booking.Booking.BookingStatus.APPROVED);
+                userId, itemId, LocalDateTime.now(), BookingStatus.APPROVED);
 
         if (!hasCompletedBooking) {
             throw new BadRequestException("Пользователь может оставить отзыв только о вещи, которую ранее брал в аренду");

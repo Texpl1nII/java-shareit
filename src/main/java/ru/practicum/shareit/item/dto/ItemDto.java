@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 
 @Data
@@ -24,6 +25,7 @@ public class ItemDto {
     @NotNull(message = "Статус доступности должен быть указан")
     private Boolean available;
 
+    // ID запроса, для которого создается вещь
     private Long requestId;
 
     private BookingDto lastBooking;
