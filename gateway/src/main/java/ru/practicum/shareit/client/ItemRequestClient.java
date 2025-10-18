@@ -15,8 +15,7 @@ public class ItemRequestClient extends BaseClient {
 
     public ItemRequestClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + "/requests"))
-                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
-                .build());
+                .build()); // Убрали .requestFactory()
     }
 
     public ResponseEntity<Object> createItemRequest(Long userId, ItemRequestDto dto) {

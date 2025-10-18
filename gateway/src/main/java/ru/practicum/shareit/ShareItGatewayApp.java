@@ -1,4 +1,4 @@
-package ru.practicum.shareit.gateway;
+package ru.practicum.shareit;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
