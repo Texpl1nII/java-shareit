@@ -16,7 +16,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.CONFLICT)  // ДОБАВИТЬ обработку ConflictException
     public ErrorResponse handleConflictException(final ConflictException exception) {
         return new ErrorResponse(exception.getMessage());
     }
@@ -30,18 +30,18 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(final MethodArgumentNotValidException exception) {
-        return new ErrorResponse(exception.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowable(final Throwable exception) {
-        return new ErrorResponse(exception.getMessage());
+        return new ErrorResponse("Validation error: " + exception.getFieldError().getDefaultMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleForbiddenException(final ForbiddenException exception) {
         return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleThrowable(final Throwable exception) {
+        return new ErrorResponse("Internal server error: " + exception.getMessage());
     }
 }
