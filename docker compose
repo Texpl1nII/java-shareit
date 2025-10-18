@@ -8,6 +8,7 @@ services:
     depends_on:
       - server
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SHAREIT_SERVER_URL=http://server:9090
 
   server:
@@ -17,12 +18,13 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
       - SPRING_DATASOURCE_USERNAME=shareit
       - SPRING_DATASOURCE_PASSWORD=shareit
-
     restart: on-failure
 
   db:
@@ -41,3 +43,6 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+
+volumes:
+  postgres_data:
