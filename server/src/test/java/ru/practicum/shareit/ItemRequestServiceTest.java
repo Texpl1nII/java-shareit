@@ -1,10 +1,18 @@
 package ru.practicum.shareit;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemMapper;
@@ -19,145 +27,107 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class})
 class ItemRequestServiceTest {
-
     @Mock
     private ItemRequestRepository itemRequestRepository;
-
     @Mock
     private UserService userService;
-
     @Mock
     private ItemRepository itemRepository;
-
     @Mock
     private ItemRequestMapper itemRequestMapper;
-
     @Mock
     private ItemMapper itemMapper;
-
     @InjectMocks
     private ItemRequestService itemRequestService;
-
     private User user;
     private ItemRequest itemRequest;
     private ItemRequestDto itemRequestDto;
     private Item item;
     private ItemDto itemDto;
 
+    ItemRequestServiceTest() {
+    }
+
     @BeforeEach
     void setUp() {
-        user = new User();
-        user.setId(1L);
-        user.setName("User");
-        user.setEmail("user@example.com");
-
-        itemRequest = new ItemRequest();
-        itemRequest.setId(1L);
-        itemRequest.setDescription("Item request description");
-        itemRequest.setRequester(user);
-        itemRequest.setCreated(LocalDateTime.now());
-
-        itemRequestDto = new ItemRequestDto();
-        itemRequestDto.setId(1L);
-        itemRequestDto.setDescription("Item request description");
-        itemRequestDto.setRequesterId(1L);
-        itemRequestDto.setCreated(LocalDateTime.now());
-        // Инициализируем список, чтобы он не был null
-        itemRequestDto.setItems(new ArrayList<>());
-
-        item = new Item();
-        item.setId(1L);
-        item.setName("Item");
-        item.setDescription("Item description");
-        item.setAvailable(true);
-        item.setOwner(user);
-        item.setRequestId(itemRequest.getId());
-
-        itemDto = new ItemDto();
-        itemDto.setId(1L);
-        itemDto.setName("Item");
-        itemDto.setDescription("Item description");
-        itemDto.setAvailable(true);
-        itemDto.setRequestId(1L);
+        this.user = new User();
+        this.user.setId(1L);
+        this.user.setName("User");
+        this.user.setEmail("user@example.com");
+        this.itemRequest = new ItemRequest();
+        this.itemRequest.setId(1L);
+        this.itemRequest.setDescription("Item request description");
+        this.itemRequest.setRequester(this.user);
+        this.itemRequest.setCreated(LocalDateTime.now());
+        this.itemRequestDto = new ItemRequestDto();
+        this.itemRequestDto.setId(1L);
+        this.itemRequestDto.setDescription("Item request description");
+        this.itemRequestDto.setRequesterId(1L);
+        this.itemRequestDto.setCreated(LocalDateTime.now());
+        this.itemRequestDto.setItems(new ArrayList());
+        this.item = new Item();
+        this.item.setId(1L);
+        this.item.setName("Item");
+        this.item.setDescription("Item description");
+        this.item.setAvailable(true);
+        this.item.setOwner(this.user);
+        this.item.setRequestId(this.itemRequest.getId());
+        this.itemDto = new ItemDto();
+        this.itemDto.setId(1L);
+        this.itemDto.setName("Item");
+        this.itemDto.setDescription("Item description");
+        this.itemDto.setAvailable(true);
+        this.itemDto.setRequestId(1L);
     }
 
     @Test
     void testCreateItemRequest() {
-        when(userService.getUserById(anyLong())).thenReturn(user);
-        when(itemRequestMapper.toItemRequest(any(ItemRequestDto.class))).thenReturn(itemRequest);
-        when(itemRequestRepository.save(any(ItemRequest.class))).thenReturn(itemRequest);
-        when(itemRequestMapper.toItemRequestDto(any(ItemRequest.class))).thenReturn(itemRequestDto);
-
-        ItemRequestDto result = itemRequestService.createItemRequest(itemRequestDto, 1L);
-
-        assertNotNull(result);
-        assertEquals(itemRequestDto.getId(), result.getId());
-        assertEquals(itemRequestDto.getDescription(), result.getDescription());
-        verify(itemRequestRepository).save(any(ItemRequest.class));
+        Mockito.when(this.userService.getUserById(Mockito.anyLong())).thenReturn(this.user);
+        Mockito.when(this.itemRequestMapper.toItemRequest((ItemRequestDto) Mockito.any(ItemRequestDto.class))).thenReturn(this.itemRequest);
+        Mockito.when((ItemRequest) this.itemRequestRepository.save((ItemRequest) Mockito.any(ItemRequest.class))).thenReturn(this.itemRequest);
+        Mockito.when(this.itemRequestMapper.toItemRequestDto((ItemRequest) Mockito.any(ItemRequest.class))).thenReturn(this.itemRequestDto);
+        ItemRequestDto result = this.itemRequestService.createItemRequest(this.itemRequestDto, 1L);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(this.itemRequestDto.getId(), result.getId());
+        Assertions.assertEquals(this.itemRequestDto.getDescription(), result.getDescription());
+        ((ItemRequestRepository) Mockito.verify(this.itemRequestRepository)).save((ItemRequest) Mockito.any(ItemRequest.class));
     }
 
     @Test
     void testGetUserRequests() {
-        // Подготавливаем данные для itemRequestDto
-        itemRequestDto.setItems(new ArrayList<>());
-
-        // Настраиваем моки
-        when(userService.getUserById(anyLong())).thenReturn(user);
-        when(itemRequestRepository.findByRequesterIdOrderByCreatedDesc(anyLong())).thenReturn(List.of(itemRequest));
-        when(itemRequestMapper.toItemRequestDto(any(ItemRequest.class))).thenReturn(itemRequestDto);
-        // Возвращаем пустой список, чтобы не было проблем с assertFalse
-        when(itemRepository.findByRequestIdIn(anyList())).thenReturn(Collections.emptyList());
-
-        List<ItemRequestDto> result = itemRequestService.getUserItemRequests(1L);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(itemRequestDto.getId(), result.get(0).getId());
-        // Проверяем, что список items пуст а не null
-        assertNotNull(result.get(0).getItems());
-        assertTrue(result.get(0).getItems().isEmpty());
+        this.itemRequestDto.setItems(new ArrayList());
+        Mockito.when(this.userService.getUserById(Mockito.anyLong())).thenReturn(this.user);
+        Mockito.when(this.itemRequestRepository.findByRequesterIdOrderByCreatedDesc(Mockito.anyLong())).thenReturn(List.of(this.itemRequest));
+        Mockito.when(this.itemRequestMapper.toItemRequestDto((ItemRequest) Mockito.any(ItemRequest.class))).thenReturn(this.itemRequestDto);
+        Mockito.when(this.itemRepository.findByRequestIdIn(Mockito.anyList())).thenReturn(Collections.emptyList());
+        List<ItemRequestDto> result = this.itemRequestService.getUserItemRequests(1L);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals(this.itemRequestDto.getId(), ((ItemRequestDto) result.get(0)).getId());
+        Assertions.assertNotNull(((ItemRequestDto) result.get(0)).getItems());
+        Assertions.assertTrue(((ItemRequestDto) result.get(0)).getItems().isEmpty());
     }
 
     @Test
     void testGetRequestById() {
-        // Подготавливаем данные для itemRequestDto
-        itemRequestDto.setItems(new ArrayList<>());
-
-        // Настраиваем моки
-        when(userService.getUserById(anyLong())).thenReturn(user);
-        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.of(itemRequest));
-        when(itemRequestMapper.toItemRequestDto(any(ItemRequest.class))).thenReturn(itemRequestDto);
-        // Возвращаем пустой список, чтобы не было проблем с assertFalse
-        when(itemRepository.findByRequestId(anyLong())).thenReturn(Collections.emptyList());
-
-        ItemRequestDto result = itemRequestService.getItemRequestById(1L, 1L);
-
-        assertNotNull(result);
-        assertEquals(itemRequestDto.getId(), result.getId());
-        // Проверяем, что список items пуст а не null
-        assertNotNull(result.getItems());
-        assertTrue(result.getItems().isEmpty());
+        this.itemRequestDto.setItems(new ArrayList());
+        Mockito.when(this.userService.getUserById(Mockito.anyLong())).thenReturn(this.user);
+        Mockito.when(this.itemRequestRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(this.itemRequest));
+        Mockito.when(this.itemRequestMapper.toItemRequestDto((ItemRequest) Mockito.any(ItemRequest.class))).thenReturn(this.itemRequestDto);
+        Mockito.when(this.itemRepository.findByRequestId(Mockito.anyLong())).thenReturn(Collections.emptyList());
+        ItemRequestDto result = this.itemRequestService.getItemRequestById(1L, 1L);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(this.itemRequestDto.getId(), result.getId());
+        Assertions.assertNotNull(result.getItems());
+        Assertions.assertTrue(result.getItems().isEmpty());
     }
 
     @Test
     void testGetRequestByIdWithNotFoundException() {
-        when(userService.getUserById(anyLong())).thenReturn(user);
-        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> {
-            itemRequestService.getItemRequestById(1L, 1L);
-        });
+        Mockito.when(this.userService.getUserById(Mockito.anyLong())).thenReturn(this.user);
+        Mockito.when(this.itemRequestRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
+        Assertions.assertThrows(NotFoundException.class, () -> this.itemRequestService.getItemRequestById(1L, 1L));
     }
 }
