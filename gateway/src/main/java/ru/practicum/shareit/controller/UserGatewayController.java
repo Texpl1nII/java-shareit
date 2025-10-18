@@ -1,9 +1,11 @@
 package ru.practicum.shareit.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.UserClient;
+import ru.practicum.shareit.request.dto.UserDto;
 
 @RestController
 @RequestMapping(path = "/users")
@@ -12,12 +14,13 @@ public class UserGatewayController {
     private final UserClient userClient;
 
     @PostMapping
-    public ResponseEntity<Object> createUser(@RequestBody Object userDto) {
+    public ResponseEntity<Object> createUser(@Valid @RequestBody UserDto userDto) {  // ДОБАВИТЬ @Valid и UserDto
         return userClient.createUser(userDto);
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<Object> updateUser(@PathVariable Long userId, @RequestBody Object userDto) {
+    public ResponseEntity<Object> updateUser(@PathVariable Long userId,
+                                             @Valid @RequestBody UserDto userDto) {
         return userClient.updateUser(userId, userDto);
     }
 

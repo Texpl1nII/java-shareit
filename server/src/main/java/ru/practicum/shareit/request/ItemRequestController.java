@@ -17,7 +17,7 @@ public class ItemRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemRequestDto createItemRequest(@RequestBody ItemRequestDto itemRequestDto,  // Убрали @Valid
+    public ItemRequestDto createItemRequest(@RequestBody ItemRequestDto itemRequestDto,
                                             @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemRequestService.createItemRequest(itemRequestDto, userId);
     }

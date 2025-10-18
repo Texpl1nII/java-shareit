@@ -29,7 +29,7 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto createItem(@RequestBody ItemDto itemDto,  // Убрали @Valid
+    public ItemDto createItem(@RequestBody ItemDto itemDto,
                               @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemService.createItem(itemDto, userId);
     }

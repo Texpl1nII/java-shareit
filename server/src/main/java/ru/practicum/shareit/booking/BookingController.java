@@ -16,7 +16,7 @@ public class BookingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookingDto createBooking(@RequestBody BookingDto bookingDto,
+    public BookingDto createBooking(@RequestBody BookingDto bookingDto,  // ДОБАВИТЬ @Valid
                                     @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return bookingService.createBooking(bookingDto, userId);
     }

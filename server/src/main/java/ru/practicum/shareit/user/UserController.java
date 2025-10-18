@@ -14,31 +14,31 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final UserMapper userMapper;
+    private final UserMapper userMapper; // Используем инстанс
 
     @GetMapping
     public List<UserDto> getAllUsers() {
         return userService.getAllUsers().stream()
-                .map(UserMapper::toUserDto)
+                .map(userMapper::toUserDto) // Не статический!
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{userId}")
     public UserDto getUserById(@PathVariable Long userId) {
-        return UserMapper.toUserDto(userService.getUserById(userId));
+        return userMapper.toUserDto(userService.getUserById(userId));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody UserDto userDto) {  // Убрали @Valid
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userService.createUser(user));
+    public UserDto createUser(@RequestBody UserDto userDto) {
+        User user = userMapper.toUser(userDto);
+        return userMapper.toUserDto(userService.createUser(user));
     }
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userService.updateUser(userId, user));
+        User user = userMapper.toUser(userDto);
+        return userMapper.toUserDto(userService.updateUser(userId, user));
     }
 
     @DeleteMapping("/{userId}")
