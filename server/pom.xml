@@ -33,11 +33,10 @@
             <artifactId>postgresql</artifactId>
         </dependency>
 
-        <!-- H2 для локальной разработки и тестов -->
+        <!-- H2 для локальной разработки и тестов (БЕЗ scope test) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <!-- Убрали scope test, чтобы работал локально -->
         </dependency>
 
         <dependency>
