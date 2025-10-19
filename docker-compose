@@ -1,21 +1,20 @@
 services:
-  gateway:
-    build: gateway
-    image: gateway
-    container_name: shareit-gateway
-    ports:
-      - "8080:8080"
-    depends_on:
-      - server
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SHAREIT_SERVER_URL=http://server:9090
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
+    gateway:
+      build: gateway
+      image: gateway
+      container_name: shareit-gateway
+      ports:
+        - "8080:8080"
+      depends_on:
+        - server
+      environment:
+        - SPRING_PROFILES_ACTIVE=docker
+      healthcheck:
+        test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health || exit 1" ]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+        start_period: 40s
 
   server:
     build: server
