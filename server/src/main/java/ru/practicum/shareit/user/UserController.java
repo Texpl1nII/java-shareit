@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,12 +15,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final UserMapper userMapper; // Используем инстанс
+    private final UserMapper userMapper;
 
     @GetMapping
     public List<UserDto> getAllUsers() {
         return userService.getAllUsers().stream()
-                .map(userMapper::toUserDto) // Не статический!
+                .map(userMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
@@ -30,7 +31,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody UserDto userDto) {
+    public UserDto createUser(@Valid @RequestBody UserDto userDto) { // ДОБАВИТЬ @Valid!
         User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userService.createUser(user));
     }

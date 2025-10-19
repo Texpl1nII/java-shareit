@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.Constants;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -16,7 +17,7 @@ public class BookingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookingDto createBooking(@RequestBody BookingDto bookingDto,  // ДОБАВИТЬ @Valid
+    public BookingDto createBooking(@Valid @RequestBody BookingDto bookingDto,  // ДОБАВИТЬ @Valid
                                     @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return bookingService.createBooking(bookingDto, userId);
     }
