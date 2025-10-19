@@ -22,29 +22,21 @@ public abstract class BaseClient {
         return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
     }
 
-    protected <T> ResponseEntity<Object> patch(String path, Long userId, Map<String, Object> parameters, T body) {
-        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body);
-    }
-
-    protected ResponseEntity<Object> delete(String path, Long userId, Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.DELETE, path, userId, parameters, null);
-    }
-
     private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId,
                                                           Map<String, Object> parameters, T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
 
-        ResponseEntity<Object> shareitServerResponse;
         try {
             if (parameters != null && !parameters.isEmpty()) {
-                shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
+                return rest.exchange(path, method, requestEntity, Object.class, parameters);
             } else {
-                shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class);
+                return rest.exchange(path, method, requestEntity, Object.class);
             }
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return shareitServerResponse;
     }
 
     private HttpHeaders defaultHeaders(Long userId) {
