@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.Booking.BookingStatus;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -24,8 +25,7 @@ public class BookingDto {
     @Future(message = "Дата окончания бронирования должна быть в будущем")
     private LocalDateTime end;
 
+    @NotNull(message = "ID вещи не может быть пустым")
     private Long itemId;
-    private Long item;
-    private Long booker;
     private BookingStatus status;
 }
