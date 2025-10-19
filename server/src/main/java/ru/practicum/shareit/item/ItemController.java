@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.Constants;
 
 import jakarta.validation.Valid;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -30,20 +31,21 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto createItem(@Valid @RequestBody ItemDto itemDto,  // ДОБАВИТЬ @Valid
+    public ItemDto createItem(@Valid @RequestBody ItemDto itemDto, // ✅ ДОБАВИЛ @Valid
                               @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemService.createItem(itemDto, userId);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@PathVariable Long itemId, @RequestBody ItemDto itemDto,
+    public ItemDto updateItem(@PathVariable Long itemId,
+                              @Valid @RequestBody ItemDto itemDto, // ✅ ДОБАВИЛ @Valid
                               @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemService.updateItem(itemId, itemDto, userId);
     }
 
     @PostMapping("/{itemId}/comment")
     public CommentDto createComment(@PathVariable Long itemId,
-                                    @Valid @RequestBody CommentDto commentDto,  // ДОБАВИТЬ @Valid
+                                    @Valid @RequestBody CommentDto commentDto, // ✅ ДОБАВИЛ @Valid
                                     @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemService.createComment(itemId, commentDto, userId);
     }

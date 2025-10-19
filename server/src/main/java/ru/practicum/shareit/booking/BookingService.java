@@ -28,6 +28,18 @@ public class BookingService {
 
     @Transactional
     public BookingDto createBooking(BookingDto bookingDto, Long userId) {
+        if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
+            throw new BadRequestException("Даты начала и окончания бронирования обязательны");
+        }
+
+        if (bookingDto.getStart().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Дата начала бронирования не может быть в прошлом");
+        }
+
+        if (bookingDto.getEnd().isBefore(bookingDto.getStart()) || bookingDto.getEnd().equals(bookingDto.getStart())) {
+            throw new BadRequestException("Время окончания должно быть после времени начала");
+        }
+
         User booker = userService.getUserById(userId);
 
         Item item = itemRepository.findById(bookingDto.getItemId())
@@ -39,10 +51,6 @@ public class BookingService {
 
         if (item.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Владелец не может забронировать собственную вещь");
-        }
-
-        if (bookingDto.getEnd().isBefore(bookingDto.getStart()) || bookingDto.getEnd().equals(bookingDto.getStart())) {
-            throw new BadRequestException("Время окончания должно быть после времени начала");
         }
 
         Booking booking = new Booking();

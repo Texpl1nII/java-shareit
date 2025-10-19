@@ -7,6 +7,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,13 +32,14 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@Valid @RequestBody UserDto userDto) { // ДОБАВИТЬ @Valid!
+    public UserDto createUser(@Valid @RequestBody UserDto userDto) { // ✅ УЖЕ ЕСТЬ @Valid
         User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userService.createUser(user));
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
+    public UserDto updateUser(@PathVariable Long userId,
+                              @Valid @RequestBody UserDto userDto) { // ✅ ДОБАВИЛ @Valid
         User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userService.updateUser(userId, user));
     }

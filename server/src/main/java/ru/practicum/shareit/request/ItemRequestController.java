@@ -8,6 +8,7 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.Constants;
 
 import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -18,7 +19,7 @@ public class ItemRequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemRequestDto createItemRequest(@Valid @RequestBody ItemRequestDto itemRequestDto,  // ДОБАВИТЬ @Valid
+    public ItemRequestDto createItemRequest(@Valid @RequestBody ItemRequestDto itemRequestDto,
                                             @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemRequestService.createItemRequest(itemRequestDto, userId);
     }

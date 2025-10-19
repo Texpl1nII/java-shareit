@@ -33,17 +33,15 @@ public class UserService {
     public User updateUser(Long userId, User user) {
         User existingUser = getUserById(userId);
 
-        if (user.getEmail() != null && !user.getEmail().equals(existingUser.getEmail())
-                && userRepository.existsByEmail(user.getEmail())) {
-            throw new ConflictException("Пользователь с email " + user.getEmail() + " уже существует");
+        if (user.getEmail() != null && !user.getEmail().equals(existingUser.getEmail())) {
+            if (userRepository.existsByEmail(user.getEmail())) {
+                throw new ConflictException("Пользователь с email " + user.getEmail() + " уже существует");
+            }
+            existingUser.setEmail(user.getEmail());
         }
 
         if (user.getName() != null) {
             existingUser.setName(user.getName());
-        }
-
-        if (user.getEmail() != null) {
-            existingUser.setEmail(user.getEmail());
         }
 
         return userRepository.save(existingUser);
