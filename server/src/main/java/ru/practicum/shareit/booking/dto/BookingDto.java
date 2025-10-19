@@ -4,13 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.Booking.BookingStatus;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -27,10 +24,8 @@ public class BookingDto {
     @Future(message = "Дата окончания бронирования должна быть в будущем")
     private LocalDateTime end;
 
-    @NotNull(message = "ID вещи не может быть пустым")
     private Long itemId;
-
-    private ItemDto item;
-    private UserDto booker;
+    private Long item;
+    private Long booker;
     private BookingStatus status;
 }

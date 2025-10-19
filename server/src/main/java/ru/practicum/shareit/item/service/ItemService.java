@@ -68,13 +68,12 @@ public class ItemService {
         Item item = itemMapper.toItem(itemDto);
         item.setOwner(owner);
 
-        // Проверка и установка requestId, если он указан
         if (itemDto.getRequestId() != null) {
-            // Проверяем существование запроса
             ItemRequest request = itemRequestRepository.findById(itemDto.getRequestId())
                     .orElseThrow(() -> new NotFoundException("Запрос с ID " + itemDto.getRequestId() + " не найден"));
-
             item.setRequestId(request.getId());
+        } else {
+            item.setRequestId(null);
         }
 
         Item savedItem = itemRepository.save(item);

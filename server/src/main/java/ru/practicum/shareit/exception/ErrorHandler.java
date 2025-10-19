@@ -5,6 +5,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class ErrorHandler {
@@ -16,7 +18,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)  // ДОБАВИТЬ обработку ConflictException
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleConflictException(final ConflictException exception) {
         return new ErrorResponse(exception.getMessage());
     }
@@ -30,7 +32,23 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(final MethodArgumentNotValidException exception) {
-        return new ErrorResponse("Validation error: " + exception.getFieldError().getDefaultMessage());
+        String errorMessage = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation error");
+        return new ErrorResponse(errorMessage);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingHeader(final MissingRequestHeaderException exception) {
+        return new ErrorResponse("Required header '" + exception.getHeaderName() + "' is missing");
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleJsonParseError(final HttpMessageNotReadableException exception) {
+        return new ErrorResponse("JSON parse error: " + exception.getLocalizedMessage());
     }
 
     @ExceptionHandler
@@ -42,6 +60,6 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable exception) {
-        return new ErrorResponse("Internal server error: " + exception.getMessage());
+        return new ErrorResponse("Internal server error");
     }
 }

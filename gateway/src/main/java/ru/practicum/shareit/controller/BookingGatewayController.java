@@ -1,12 +1,13 @@
 package ru.practicum.shareit.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.BookingClient;
 import ru.practicum.shareit.Constants;
 import ru.practicum.shareit.request.dto.BookingDto;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(path = "/bookings")

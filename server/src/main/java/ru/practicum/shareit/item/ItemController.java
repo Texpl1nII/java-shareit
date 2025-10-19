@@ -45,7 +45,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public CommentDto createComment(@PathVariable Long itemId,
-                                    @Valid @RequestBody CommentDto commentDto, // ✅ ДОБАВИЛ @Valid
+                                    @Valid @RequestBody CommentDto commentDto,
                                     @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemService.createComment(itemId, commentDto, userId);
     }

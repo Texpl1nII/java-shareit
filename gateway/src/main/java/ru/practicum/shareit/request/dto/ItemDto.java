@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -23,7 +22,4 @@ public class ItemDto {
     private Boolean available;
 
     private Long requestId;
-    private Object lastBooking;
-    private Object nextBooking;
-    private List<Object> comments;
 }
