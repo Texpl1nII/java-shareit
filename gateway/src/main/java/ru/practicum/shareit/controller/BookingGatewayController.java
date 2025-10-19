@@ -1,10 +1,12 @@
 package ru.practicum.shareit.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.BookingClient;
 import ru.practicum.shareit.Constants;
+import ru.practicum.shareit.request.dto.BookingDto;
 
 @RestController
 @RequestMapping(path = "/bookings")
@@ -14,7 +16,7 @@ public class BookingGatewayController {
 
     @PostMapping
     public ResponseEntity<Object> createBooking(@RequestHeader(Constants.USER_ID_HEADER) Long userId,
-                                                @RequestBody Object bookingDto) {
+                                                @Valid @RequestBody BookingDto bookingDto) {
         return bookingClient.createBooking(userId, bookingDto);
     }
 

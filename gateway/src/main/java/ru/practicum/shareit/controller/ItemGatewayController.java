@@ -1,10 +1,13 @@
 package ru.practicum.shareit.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.ItemClient;
 import ru.practicum.shareit.Constants;
+import ru.practicum.shareit.request.dto.ItemDto;
+import ru.practicum.shareit.request.dto.CommentDto;
 
 @RestController
 @RequestMapping(path = "/items")
@@ -14,14 +17,14 @@ public class ItemGatewayController {
 
     @PostMapping
     public ResponseEntity<Object> createItem(@RequestHeader(Constants.USER_ID_HEADER) Long userId,
-                                             @RequestBody Object itemDto) {
+                                             @Valid @RequestBody ItemDto itemDto) {
         return itemClient.createItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
     public ResponseEntity<Object> updateItem(@RequestHeader(Constants.USER_ID_HEADER) Long userId,
                                              @PathVariable Long itemId,
-                                             @RequestBody Object itemDto) {
+                                             @Valid @RequestBody ItemDto itemDto) {
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 
@@ -45,7 +48,7 @@ public class ItemGatewayController {
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> createComment(@RequestHeader(Constants.USER_ID_HEADER) Long userId,
                                                 @PathVariable Long itemId,
-                                                @RequestBody Object commentDto) {
+                                                @Valid @RequestBody CommentDto commentDto) {
         return itemClient.createComment(userId, itemId, commentDto);
     }
 }

@@ -1,10 +1,12 @@
 package ru.practicum.shareit.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.CommentClient;
 import ru.practicum.shareit.Constants;
+import ru.practicum.shareit.request.dto.CommentDto;
 
 @RestController
 @RequestMapping(path = "/comments")
@@ -14,7 +16,7 @@ public class CommentGatewayController {
 
     @PostMapping
     public ResponseEntity<Object> createComment(@RequestHeader(Constants.USER_ID_HEADER) Long userId,
-                                                @RequestBody Object commentDto) {
+                                                @Valid @RequestBody CommentDto commentDto) {
         return commentClient.createComment(userId, commentDto);
     }
 

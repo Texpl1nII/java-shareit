@@ -32,14 +32,14 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@Valid @RequestBody UserDto userDto) { // ✅ УЖЕ ЕСТЬ @Valid
+    public UserDto createUser(@Valid @RequestBody UserDto userDto) {
         User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userService.createUser(user));
     }
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@PathVariable Long userId,
-                              @Valid @RequestBody UserDto userDto) { // ✅ ДОБАВИЛ @Valid
+                              @Valid @RequestBody UserDto userDto) {
         User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userService.updateUser(userId, user));
     }
