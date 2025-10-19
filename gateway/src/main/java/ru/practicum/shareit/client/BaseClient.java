@@ -22,6 +22,15 @@ public abstract class BaseClient {
         return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
     }
 
+    // ДОБАВИТЬ ЭТИ МЕТОДЫ!
+    protected <T> ResponseEntity<Object> patch(String path, Long userId, Map<String, Object> parameters, T body) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body);
+    }
+
+    protected ResponseEntity<Object> delete(String path, Long userId, Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.DELETE, path, userId, parameters, null);
+    }
+
     private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId,
                                                           Map<String, Object> parameters, T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
