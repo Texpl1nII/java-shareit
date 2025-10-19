@@ -27,4 +27,7 @@ public class BookingDto {
     private Long itemId;
 
     private String status;
+
+    private UserDto booker;
+    private ItemDto item;
 }

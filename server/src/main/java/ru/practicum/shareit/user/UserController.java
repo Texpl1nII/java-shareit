@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserDto getUserById(@PathVariable Long userId) {
+    public UserDto getUserById(@PathVariable("userId") Long userId) { // ✅ ИСПРАВЛЕНО
         return userMapper.toUserDto(userService.getUserById(userId));
     }
 
@@ -38,14 +38,14 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@PathVariable Long userId,
+    public UserDto updateUser(@PathVariable("userId") Long userId, // ✅ ИСПРАВЛЕНО
                               @Valid @RequestBody UserDto userDto) {
         User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userService.updateUser(userId, user));
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteUser(@PathVariable Long userId) {
+    public void deleteUser(@PathVariable("userId") Long userId) { // ✅ ИСПРАВЛЕНО
         userService.deleteUser(userId);
     }
 }

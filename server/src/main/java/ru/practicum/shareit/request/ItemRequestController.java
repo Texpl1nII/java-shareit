@@ -37,7 +37,7 @@ public class ItemRequestController {
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequestDto getItemRequestById(@PathVariable Long requestId,
+    public ItemRequestDto getItemRequestById(@PathVariable("requestId") Long requestId, // ✅ ИСПРАВЛЕНО
                                              @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return itemRequestService.getItemRequestById(requestId, userId);
     }

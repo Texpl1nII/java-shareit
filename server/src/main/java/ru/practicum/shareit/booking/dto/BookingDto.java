@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.Booking.BookingStatus;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -27,5 +29,10 @@ public class BookingDto {
 
     @NotNull(message = "ID вещи не может быть пустым")
     private Long itemId;
+
     private BookingStatus status;
+
+    // ✅ ДОБАВЛЕНЫ НОВЫЕ ПОЛЯ:
+    private UserDto booker;
+    private ItemDto item;
 }

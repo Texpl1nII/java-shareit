@@ -18,20 +18,20 @@ public class BookingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookingDto createBooking(@Valid @RequestBody BookingDto bookingDto, // ✅ ДОБАВИЛ @Valid
+    public BookingDto createBooking(@Valid @RequestBody BookingDto bookingDto,
                                     @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return bookingService.createBooking(bookingDto, userId);
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto approveBooking(@PathVariable Long bookingId,
+    public BookingDto approveBooking(@PathVariable("bookingId") Long bookingId, // ✅ ИСПРАВЛЕНО
                                      @RequestParam Boolean approved,
                                      @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return bookingService.approveBooking(bookingId, approved, userId);
     }
 
     @GetMapping("/{bookingId}")
-    public BookingDto getBookingById(@PathVariable Long bookingId,
+    public BookingDto getBookingById(@PathVariable("bookingId") Long bookingId, // ✅ ИСПРАВЛЕНО
                                      @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         return bookingService.getBookingById(bookingId, userId);
     }
