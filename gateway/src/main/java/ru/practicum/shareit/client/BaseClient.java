@@ -1,5 +1,6 @@
 package ru.practicum.shareit.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
@@ -7,11 +8,41 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public abstract class BaseClient {
     protected final RestTemplate rest;
 
     protected BaseClient(RestTemplate rest) {
         this.rest = rest;
+    }
+
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId,
+                                                          Map<String, Object> parameters, T body) {
+        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
+
+        try {
+            ResponseEntity<Object> response;
+            if (parameters != null && !parameters.isEmpty()) {
+                response = rest.exchange(path, method, requestEntity, Object.class, parameters);
+            } else {
+                response = rest.exchange(path, method, requestEntity, Object.class);
+            }
+            return response;
+        } catch (HttpStatusCodeException e) {
+            log.error("HTTP error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+
+            // ✅ КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Возвращаем JSON ошибки как есть
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            return ResponseEntity.status(e.getStatusCode())
+                    .headers(headers)
+                    .body(e.getResponseBodyAsString()); // Возвращаем строку, а не byte[]
+        } catch (Exception e) {
+            log.error("Request failed: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal server error: " + e.getMessage()));
+        }
     }
 
     protected ResponseEntity<Object> get(String path, Long userId, Map<String, Object> parameters) {
@@ -30,25 +61,6 @@ public abstract class BaseClient {
         return makeAndSendRequest(HttpMethod.DELETE, path, userId, parameters, null);
     }
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId,
-                                                          Map<String, Object> parameters, T body) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
-
-        try {
-            if (parameters != null && !parameters.isEmpty()) {
-                return rest.exchange(path, method, requestEntity, Object.class, parameters);
-            } else {
-                return rest.exchange(path, method, requestEntity, Object.class);
-            }
-        } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode())
-                    .body(e.getResponseBodyAsString());  // Изменено с byte[] на String
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal server error: " + e.getMessage());
-        }
-    }
-
     private HttpHeaders defaultHeaders(Long userId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -58,4 +70,5 @@ public abstract class BaseClient {
         }
         return headers;
     }
+
 }

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking.BookingStatus;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -66,24 +68,63 @@ public class BookingService {
 
     @Transactional
     public BookingDto approveBooking(Long bookingId, Boolean approved, Long userId) {
+        // ✅ ДОБАВЛЕНО: Валидация входных параметров
+        if (bookingId == null) {
+            throw new BadRequestException("ID бронирования не может быть пустым");
+        }
+        if (approved == null) {
+            throw new BadRequestException("Параметр approved не может быть пустым");
+        }
+        if (userId == null) {
+            throw new BadRequestException("ID пользователя не может быть пустым");
+        }
+
+        log.debug("Approving booking {} with approved={} for user {}", bookingId, approved, userId);
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с ID " + bookingId + " не найдено"));
 
+        // ✅ ДОБАВЛЕНО: Проверка на null для booking.getItem() и booking.getItem().getOwner()
+        if (booking.getItem() == null) {
+            throw new NotFoundException("Вещь не найдена для бронирования с ID " + bookingId);
+        }
+        if (booking.getItem().getOwner() == null) {
+            throw new NotFoundException("Владелец вещи не найден для бронирования с ID " + bookingId);
+        }
+
+        // ✅ УЛУЧШЕНО: Более информативное сообщение об ошибке
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new ForbiddenException("Только владелец вещи может подтвердить бронирование");
+            throw new ForbiddenException("Только владелец вещи (ID: " + booking.getItem().getOwner().getId() +
+                    ") может подтвердить бронирование. Текущий пользователь: " + userId);
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {
-            throw new BadRequestException("Бронирование уже обработано");
+            throw new BadRequestException("Бронирование уже обработано. Текущий статус: " + booking.getStatus());
         }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
-        Booking savedBooking = bookingRepository.save(booking);
-        return bookingMapper.toBookingDto(savedBooking);
+
+        try {
+            Booking savedBooking = bookingRepository.save(booking);
+            log.info("Booking {} successfully {} by user {}", bookingId,
+                    approved ? "APPROVED" : "REJECTED", userId);
+            return bookingMapper.toBookingDto(savedBooking);
+        } catch (Exception e) {
+            // ✅ ДОБАВЛЕНО: Обработка ошибок сохранения
+            log.error("Error saving booking {}: ", bookingId, e);
+            throw new BadRequestException("Ошибка при сохранении бронирования: " + e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
     public BookingDto getBookingById(Long bookingId, Long userId) {
+        if (bookingId == null) {
+            throw new BadRequestException("ID бронирования не может быть пустым");
+        }
+        if (userId == null) {
+            throw new BadRequestException("ID пользователя не может быть пустым");
+        }
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование с ID " + bookingId + " не найдено"));
 
@@ -96,6 +137,10 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingDto> getUserBookings(Long userId, String state) {
+        if (userId == null) {
+            throw new BadRequestException("ID пользователя не может быть пустым");
+        }
+
         userService.getUserById(userId); // Проверка существования пользователя
 
         List<Booking> bookings;
@@ -131,6 +176,10 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingDto> getOwnerBookings(Long userId, String state) {
+        if (userId == null) {
+            throw new BadRequestException("ID пользователя не может быть пустым");
+        }
+
         userService.getUserById(userId); // Проверка существования пользователя
 
         List<Booking> bookings;

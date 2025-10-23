@@ -31,8 +31,6 @@ public class BookingDto {
     private Long itemId;
 
     private BookingStatus status;
-
-    // ✅ ДОБАВЛЕНЫ НОВЫЕ ПОЛЯ:
     private UserDto booker;
     private ItemDto item;
 }

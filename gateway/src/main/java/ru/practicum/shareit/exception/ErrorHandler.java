@@ -1,30 +1,34 @@
 package ru.practicum.shareit.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.util.Map;
+
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<Object> handleNotFound(NoHandlerFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Endpoint not found: " + e.getRequestURL());
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException e) {
+    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation error");
+
+        log.error("Validation error: {}", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Validation error: " + e.getFieldError().getDefaultMessage());
+                .body(Map.of("error", errorMessage));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleGenericException(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal server error: " + e.getMessage());
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("Illegal argument: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
     }
 }

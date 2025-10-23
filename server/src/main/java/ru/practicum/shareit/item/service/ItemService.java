@@ -63,6 +63,17 @@ public class ItemService {
 
     @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
+        // Валидация обязательных полей
+        if (itemDto.getName() == null || itemDto.getName().isBlank()) {
+            throw new BadRequestException("Название не может быть пустым");
+        }
+        if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
+            throw new BadRequestException("Описание не может быть пустым");
+        }
+        if (itemDto.getAvailable() == null) {
+            throw new BadRequestException("Статус доступности должен быть указан");
+        }
+
         User owner = userService.getUserById(userId);
 
         Item item = new Item();
