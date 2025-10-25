@@ -31,14 +31,13 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
         </dependency>
-        <!-- PostgreSQL для production -->
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ✅ ДОБАВЬТЕ H2 для разработки -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
