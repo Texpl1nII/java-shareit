@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   gateway:
     build: gateway
-    image: shareit-gateway
+    image: gateway
     container_name: shareit-gateway
     ports:
       - "8080:8080"
@@ -14,41 +12,34 @@ services:
 
   server:
     build: server
-    image: shareit-server
+    image: server
     container_name: shareit-server
     ports:
       - "9090:9090"
     depends_on:
       - db
     environment:
-      # Database settings - PostgreSQL
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
       - SPRING_DATASOURCE_USERNAME=shareit
       - SPRING_DATASOURCE_PASSWORD=shareit
-      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=org.postgresql.Driver
-
-      # JPA settings
-      - SPRING_JPA_DATABASE-PLATFORM=org.hibernate.dialect.PostgreSQLDialect
-      - SPRING_JPA_HIBERNATE_DDL-AUTO=create-drop
-      - SPRING_JPA_SHOW-SQL=true
-      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
-      - SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE=UTC
-
-      # Server settings
-      - SERVER_PORT=9090
-
-      # Other settings
-      - SPRING_JACKSON_SERIALIZATION_WRITE_DATES_AS_TIMESTAMPS=false
-      - SPRING_JACKSON_DESERIALIZATION_FAIL_ON_UNKNOWN_PROPERTIES=false
-      - SPRING_WEB_CORS_ALLOWED_ORIGINS=*
-      - SPRING_WEB_CORS_ALLOWED_METHODS=GET,POST,PUT,PATCH,DELETE,OPTIONS
+    restart: on-failure
 
   db:
     image: postgres:16.1
-    container_name: shareit-db
+    container_name: postgres
     ports:
-      - "5432:5432"
+      - "6541:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=shareit
       - POSTGRES_USER=shareit
       - POSTGRES_DB=shareit
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
