@@ -30,13 +30,7 @@ public class BookingController {
                                      @RequestHeader(Constants.USER_ID_HEADER) Long userId) {
         log.info("PATCH /bookings/{}?approved={} - подтверждение бронирования пользователем: {}",
                 bookingId, approved, userId);
-
-        try {
-            return bookingService.approveBooking(bookingId, approved, userId);
-        } catch (Exception e) {
-            log.error("Error in PATCH /bookings/{}: ", bookingId, e);
-            throw e; // Пробрасываем исключение для обработки в ErrorHandler
-        }
+        return bookingService.approveBooking(bookingId, approved, userId);
     }
 
     @GetMapping("/{bookingId}")

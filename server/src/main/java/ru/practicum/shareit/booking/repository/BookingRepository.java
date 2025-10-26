@@ -22,30 +22,28 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookerIdAndStartAfterOrderByStartDesc(
             Long bookerId, LocalDateTime start);
 
-    // Бронирования пользователя по статусу
     List<Booking> findByBookerIdAndStatusOrderByStartDesc(
             Long bookerId, BookingStatus status);
 
-    // Бронирования вещей пользователя
     List<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
 
-    // Текущие бронирования вещей пользователя
     List<Booking> findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(
             Long ownerId, LocalDateTime start, LocalDateTime end);
 
-    // Завершенные бронирования вещей пользователя
     List<Booking> findByItemOwnerIdAndEndBeforeOrderByStartDesc(
             Long ownerId, LocalDateTime end);
 
-    // Будущие бронирования вещей пользователя
     List<Booking> findByItemOwnerIdAndStartAfterOrderByStartDesc(
             Long ownerId, LocalDateTime start);
 
-    // Бронирования вещей пользователя по статусу
     List<Booking> findByItemOwnerIdAndStatusOrderByStartDesc(
             Long ownerId, BookingStatus status);
 
-    // Проверка, что пользователь брал вещь в аренду
+    // СТАРЫЙ метод - оставь для обратной совместимости
     boolean existsByBookerIdAndItemIdAndEndBeforeAndStatus(
             Long bookerId, Long itemId, LocalDateTime end, BookingStatus status);
+
+    // ✅ НОВЫЙ метод - упрощенная проверка для комментариев
+    boolean existsByBookerIdAndItemIdAndEndBefore(
+            Long bookerId, Long itemId, LocalDateTime end);
 }

@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.Booking.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -15,7 +14,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -33,7 +31,6 @@ public class ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final ItemRequestRepository itemRequestRepository; // Добавлен репозиторий для запросов
 
     public List<ItemDto> getUserItems(Long userId) {
         userService.getUserById(userId);
@@ -47,14 +44,14 @@ public class ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
 
-        ItemDto itemDto = itemMapper.toItemDto(item);
-
         List<Comment> comments = commentRepository.findByItemId(itemId);
         List<CommentDto> commentDtos = comments.stream()
                 .map(commentMapper::toCommentDto)
                 .collect(Collectors.toList());
 
-        itemDto.setComments(commentDtos);
+        // ✅ ИСПОЛЬЗУЕМ новый метод с комментариями
+        ItemDto itemDto = itemMapper.toItemDtoWithComments(item, commentDtos);
+
         itemDto.setLastBooking(null);
         itemDto.setNextBooking(null);
 
@@ -63,7 +60,6 @@ public class ItemService {
 
     @Transactional
     public ItemDto createItem(ItemDto itemDto, Long userId) {
-        // Валидация обязательных полей
         if (itemDto.getName() == null || itemDto.getName().isBlank()) {
             throw new BadRequestException("Название не может быть пустым");
         }
@@ -120,7 +116,6 @@ public class ItemService {
             return Collections.emptyList();
         }
 
-        // Используем метод с явным запросом
         List<Item> foundItems = itemRepository.searchAvailableItems(text);
 
         return foundItems.stream()
@@ -135,16 +130,19 @@ public class ItemService {
 
         User author = userService.getUserById(userId);
 
-        // Проверяем, что пользователь брал эту вещь в аренду и бронирование завершено
-        boolean hasCompletedBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBeforeAndStatus(
-                userId, itemId, LocalDateTime.now(), BookingStatus.APPROVED);
+        boolean hasCompletedBooking = bookingRepository.existsByBookerIdAndItemIdAndEndBefore(
+                userId, itemId, LocalDateTime.now());
 
         if (!hasCompletedBooking) {
             throw new BadRequestException("Пользователь может оставить отзыв только о вещи, которую ранее брал в аренду");
         }
 
+        if (commentDto.getText() == null || commentDto.getText().trim().isEmpty()) {
+            throw new BadRequestException("Текст комментария не может быть пустым");
+        }
+
         Comment comment = new Comment();
-        comment.setText(commentDto.getText());
+        comment.setText(commentDto.getText().trim());
         comment.setItem(item);
         comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());
