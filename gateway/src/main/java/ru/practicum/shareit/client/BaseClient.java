@@ -31,7 +31,6 @@ public abstract class BaseClient {
         } catch (HttpStatusCodeException e) {
             log.error("HTTP error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
 
-            // ✅ КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Возвращаем JSON ошибки как есть
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 

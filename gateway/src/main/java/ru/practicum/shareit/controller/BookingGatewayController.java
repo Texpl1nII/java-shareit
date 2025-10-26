@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.BookingClient;
 import ru.practicum.shareit.Constants;
-import ru.practicum.shareit.request.dto.BookingDto;
+import ru.practicum.shareit.request.dto.BookingRequestDto;
 
 import jakarta.validation.Valid;
 
@@ -21,9 +21,9 @@ public class BookingGatewayController {
 
     @PostMapping
     public ResponseEntity<Object> createBooking(@RequestHeader(Constants.USER_ID_HEADER) Long userId,
-                                                @Valid @RequestBody BookingDto bookingDto) {
+                                                @Valid @RequestBody BookingRequestDto bookingRequestDto) {
         log.info("Gateway: POST /bookings - создание бронирования пользователем: {}", userId);
-        return bookingClient.createBooking(userId, bookingDto);
+        return bookingClient.createBooking(userId, bookingRequestDto);
     }
 
     @PatchMapping("/{bookingId}")

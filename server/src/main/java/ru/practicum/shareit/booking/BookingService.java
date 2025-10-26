@@ -68,51 +68,68 @@ public class BookingService {
 
     @Transactional
     public BookingDto approveBooking(Long bookingId, Boolean approved, Long userId) {
-        // ✅ ДОБАВЛЕНО: Валидация входных параметров
-        if (bookingId == null) {
-            throw new BadRequestException("ID бронирования не может быть пустым");
-        }
-        if (approved == null) {
-            throw new BadRequestException("Параметр approved не может быть пустым");
-        }
-        if (userId == null) {
-            throw new BadRequestException("ID пользователя не может быть пустым");
-        }
-
-        log.debug("Approving booking {} with approved={} for user {}", bookingId, approved, userId);
-
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование с ID " + bookingId + " не найдено"));
-
-        // ✅ ДОБАВЛЕНО: Проверка на null для booking.getItem() и booking.getItem().getOwner()
-        if (booking.getItem() == null) {
-            throw new NotFoundException("Вещь не найдена для бронирования с ID " + bookingId);
-        }
-        if (booking.getItem().getOwner() == null) {
-            throw new NotFoundException("Владелец вещи не найден для бронирования с ID " + bookingId);
-        }
-
-        // ✅ УЛУЧШЕНО: Более информативное сообщение об ошибке
-        if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new ForbiddenException("Только владелец вещи (ID: " + booking.getItem().getOwner().getId() +
-                    ") может подтвердить бронирование. Текущий пользователь: " + userId);
-        }
-
-        if (booking.getStatus() != BookingStatus.WAITING) {
-            throw new BadRequestException("Бронирование уже обработано. Текущий статус: " + booking.getStatus());
-        }
-
-        booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        log.info("=== START APPROVE BOOKING ===");
+        log.info("Params: bookingId={}, approved={}, userId={}", bookingId, approved, userId);
 
         try {
+            // Валидация
+            if (bookingId == null) throw new BadRequestException("Booking ID is null");
+            if (approved == null) throw new BadRequestException("Approved is null");
+            if (userId == null) throw new BadRequestException("User ID is null");
+
+            log.debug("Finding booking with ID: {}", bookingId);
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> {
+                        log.error("Booking not found: {}", bookingId);
+                        return new NotFoundException("Бронирование с ID " + bookingId + " не найдено");
+                    });
+
+            log.debug("Booking found: id={}, status={}", booking.getId(), booking.getStatus());
+            log.debug("Booking item: {}", booking.getItem());
+            log.debug("Booking item owner: {}", booking.getItem() != null ? booking.getItem().getOwner() : "NULL");
+
+            // Проверки
+            if (booking.getItem() == null) {
+                log.error("Item is null for booking: {}", bookingId);
+                throw new NotFoundException("Вещь не найдена");
+            }
+
+            if (booking.getItem().getOwner() == null) {
+                log.error("Item owner is null for booking: {}", bookingId);
+                throw new NotFoundException("Владелец вещи не найден");
+            }
+
+            Long ownerId = booking.getItem().getOwner().getId();
+            log.debug("Checking permissions: ownerId={}, userId={}", ownerId, userId);
+
+            if (!ownerId.equals(userId)) {
+                log.error("Permission denied: ownerId={}, userId={}", ownerId, userId);
+                throw new ForbiddenException("Только владелец может подтвердить бронирование");
+            }
+
+            if (booking.getStatus() != BookingStatus.WAITING) {
+                log.error("Invalid status: current={}, expected=WAITING", booking.getStatus());
+                throw new BadRequestException("Бронирование уже обработано");
+            }
+
+            // Обновление статуса
+            BookingStatus newStatus = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
+            log.debug("Updating status from {} to {}", booking.getStatus(), newStatus);
+            booking.setStatus(newStatus);
+
             Booking savedBooking = bookingRepository.save(booking);
-            log.info("Booking {} successfully {} by user {}", bookingId,
-                    approved ? "APPROVED" : "REJECTED", userId);
-            return bookingMapper.toBookingDto(savedBooking);
+            log.info("Booking {} successfully updated to {}", bookingId, newStatus);
+
+            BookingDto result = bookingMapper.toBookingDto(savedBooking);
+            log.debug("Result DTO: {}", result);
+
+            return result;
+
         } catch (Exception e) {
-            // ✅ ДОБАВЛЕНО: Обработка ошибок сохранения
-            log.error("Error saving booking {}: ", bookingId, e);
-            throw new BadRequestException("Ошибка при сохранении бронирования: " + e.getMessage());
+            log.error("=== ERROR IN APPROVE BOOKING ===", e);
+            throw e;
+        } finally {
+            log.info("=== END APPROVE BOOKING ===");
         }
     }
 
