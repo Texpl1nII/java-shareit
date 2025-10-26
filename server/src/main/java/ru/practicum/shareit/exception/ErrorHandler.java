@@ -84,12 +84,4 @@ public class ErrorHandler {
         log.error("Unhandled exception: ", exception);  // ← КРИТИЧЕСКИ ВАЖНО: запятая и exception
         return Map.of("error", "Internal server error");
     }
-
-    // Опционально: оставьте для совсем неожиданных ошибок
-    @ExceptionHandler(Throwable.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleThrowable(final Throwable throwable) {
-        log.error("Unexpected throwable: ", throwable);
-        return Map.of("error", "Internal server error");
-    }
 }
