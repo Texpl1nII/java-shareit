@@ -10,78 +10,78 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.Map;
-
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFoundException(final NotFoundException exception) {
-        log.error("NotFoundException: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", exception.getMessage());
+    public ErrorResponse handleNotFoundException(final NotFoundException exception) {
+        log.error("NotFoundException: {}", exception.getMessage(), exception);
+        return new ErrorResponse("Not Found", exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleConflictException(final ConflictException exception) {
-        log.error("ConflictException: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", exception.getMessage());
+    public ErrorResponse handleConflictException(final ConflictException exception) {
+        log.error("ConflictException: {}", exception.getMessage(), exception);
+        return new ErrorResponse("Conflict", exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleBadRequestException(final BadRequestException exception) {
-        log.error("BadRequestException: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", exception.getMessage());
+    public ErrorResponse handleBadRequestException(final BadRequestException exception) {
+        log.error("BadRequestException: {}", exception.getMessage(), exception);
+        return new ErrorResponse("Bad Request", exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidationException(final MethodArgumentNotValidException exception) {
+    public ErrorResponse handleValidationException(final MethodArgumentNotValidException exception) {
         String errorMessage = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("Validation error");
-        log.error("ValidationException: {}", errorMessage, exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", errorMessage);
+        log.error("ValidationException: {}", errorMessage, exception);
+        return new ErrorResponse("Validation Error", errorMessage);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleMissingHeader(final MissingRequestHeaderException exception) {
-        log.error("MissingHeaderException: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", "Required header '" + exception.getHeaderName() + "' is missing");
+    public ErrorResponse handleMissingHeader(final MissingRequestHeaderException exception) {
+        log.error("MissingHeaderException: {}", exception.getMessage(), exception);
+        String description = "Required header '" + exception.getHeaderName() + "' is missing";
+        return new ErrorResponse("Missing Header", description);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleJsonParseError(final HttpMessageNotReadableException exception) {
-        log.error("JsonParseError: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", "JSON parse error: " + exception.getLocalizedMessage());
+    public ErrorResponse handleJsonParseError(final HttpMessageNotReadableException exception) {
+        log.error("JsonParseError: {}", exception.getMessage(), exception);
+        String description = "JSON parse error: " + exception.getLocalizedMessage();
+        return new ErrorResponse("JSON Parse Error", description);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleTypeMismatch(final MethodArgumentTypeMismatchException exception) {
-        log.error("TypeMismatch: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        String errorMessage = String.format("Неверный тип параметра '%s': ожидается %s",
+    public ErrorResponse handleTypeMismatch(final MethodArgumentTypeMismatchException exception) {
+        log.error("TypeMismatch: {}", exception.getMessage(), exception);
+        String description = String.format("Parameter type mismatch '%s': expected %s",
                 exception.getName(), exception.getRequiredType().getSimpleName());
-        return Map.of("error", errorMessage);
+        return new ErrorResponse("Type Mismatch", description);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Map<String, String> handleForbiddenException(final ForbiddenException exception) {
-        log.error("ForbiddenException: {}", exception.getMessage(), exception);  // ← ДОБАВЛЕНО ", exception"
-        return Map.of("error", exception.getMessage());
+    public ErrorResponse handleForbiddenException(final ForbiddenException exception) {
+        log.error("ForbiddenException: {}", exception.getMessage(), exception);
+        return new ErrorResponse("Forbidden", exception.getMessage());
     }
 
-    @ExceptionHandler(Exception.class)  // ← ИЗМЕНЕНО: Конкретный Exception вместо Throwable
+    @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleException(final Exception exception) {  // ← ИЗМЕНЕНО: Exception вместо Throwable
-        log.error("Unhandled exception: ", exception);  // ← КРИТИЧЕСКИ ВАЖНО: запятая и exception
-        return Map.of("error", "Internal server error");
+    public ErrorResponse handleException(final Exception exception) {
+        log.error("Unhandled exception: ", exception);
+        return new ErrorResponse("Internal Server Error", "An unexpected error occurred");
     }
 }
