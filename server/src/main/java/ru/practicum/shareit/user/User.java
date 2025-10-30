@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -21,12 +18,9 @@ public class User {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    @NotBlank(message = "Имя не может быть пустым")
     private String name;
 
     @Column(name = "email", nullable = false, unique = true)
-    @NotBlank(message = "Email не может быть пустым")
-    @Email(message = "Некорректный формат email")
     private String email;
 
     @Override

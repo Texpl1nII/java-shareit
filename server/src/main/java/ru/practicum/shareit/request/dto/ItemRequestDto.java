@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.item.dto.ItemShortDto;
 
-import jakarta.validation.constraints.NotBlank;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,11 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 public class ItemRequestDto {
     private Long id;
-
-    @NotBlank(message = "Описание запроса не может быть пустым")
     private String description;
-
     private Long requesterId;
     private LocalDateTime created;
-    private List<ItemShortDto> items;  // Изменено с ItemDto
+    private List<ItemShortDto> items;
 }

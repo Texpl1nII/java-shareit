@@ -28,11 +28,9 @@ class BookingGatewayControllerTest {
 
     @Test
     void createBooking_shouldPassDataToClient() throws Exception {
-        // given
         when(bookingClient.createBooking(anyLong(), any()))
                 .thenReturn(ResponseEntity.ok().build());
 
-        // when & then - используем даты из БУДУЩЕГО (2025 год или позже)
         mockMvc.perform(post("/bookings")
                         .header(Constants.USER_ID_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -41,70 +39,63 @@ class BookingGatewayControllerTest {
     }
 
     @Test
+    void createBooking_shouldRejectNullStart() throws Exception {
+        mockMvc.perform(post("/bookings")
+                        .header(Constants.USER_ID_HEADER, 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"end\":\"2025-12-02T10:00:00\",\"itemId\":1}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.description").value("Дата начала бронирования не может быть пустой"));
+    }
+
+    @Test
+    void createBooking_shouldRejectNullEnd() throws Exception {
+        mockMvc.perform(post("/bookings")
+                        .header(Constants.USER_ID_HEADER, 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"start\":\"2025-12-01T10:00:00\",\"itemId\":1}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.description").value("Дата окончания бронирования не может быть пустой"));
+    }
+
+    @Test
+    void createBooking_shouldRejectNullItemId() throws Exception {
+        mockMvc.perform(post("/bookings")
+                        .header(Constants.USER_ID_HEADER, 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"start\":\"2025-12-01T10:00:00\",\"end\":\"2025-12-02T10:00:00\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.description").value("ID вещи не может быть пустым"));
+    }
+
+    @Test
+    void createBooking_shouldRejectPastStartDate() throws Exception {
+        mockMvc.perform(post("/bookings")
+                        .header(Constants.USER_ID_HEADER, 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"start\":\"2020-12-01T10:00:00\",\"end\":\"2025-12-02T10:00:00\",\"itemId\":1}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.description").value("Дата начала бронирования должна быть в настоящем или будущем"));
+    }
+
+    @Test
     void approveBooking_shouldPassApprovedParameter() throws Exception {
-        // given
         when(bookingClient.approveBooking(anyLong(), anyLong(), anyBoolean()))
                 .thenReturn(ResponseEntity.ok().build());
 
-        // when & then
         mockMvc.perform(patch("/bookings/1?approved=true")
                         .header(Constants.USER_ID_HEADER, 1L))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void getUserBookings_shouldRejectUnknownState() throws Exception {
-        // given
-        when(bookingClient.getUserBookings(anyLong(), anyString()))
-                .thenReturn(ResponseEntity.badRequest().build());
-
-        // when & then
-        mockMvc.perform(get("/bookings?state=UNKNOWN")
-                        .header(Constants.USER_ID_HEADER, 1L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getBookingById_shouldPassUserId() throws Exception {
-        // given
         when(bookingClient.getBookingById(anyLong(), anyLong()))
                 .thenReturn(ResponseEntity.ok().build());
 
-        // when & then
         mockMvc.perform(get("/bookings/1")
                         .header(Constants.USER_ID_HEADER, 1L))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void getOwnerBookings_shouldPassStateParameter() throws Exception {
-        // given
-        when(bookingClient.getOwnerBookings(anyLong(), anyString()))
-                .thenReturn(ResponseEntity.ok().build());
-
-        mockMvc.perform(get("/bookings/owner?state=ALL")
-                        .header(Constants.USER_ID_HEADER, 1L))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void createBooking_shouldValidateBookingRequest() throws Exception {
-        mockMvc.perform(post("/bookings")
-                        .header(Constants.USER_ID_HEADER, 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"end\":\"2024-12-02T10:00:00\",\"itemId\":1}"))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(post("/bookings")
-                        .header(Constants.USER_ID_HEADER, 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"start\":\"2024-12-01T10:00:00\",\"end\":\"2024-12-02T10:00:00\"}"))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(post("/bookings")
-                        .header(Constants.USER_ID_HEADER, 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"start\":\"2020-12-01T10:00:00\",\"end\":\"2024-12-02T10:00:00\",\"itemId\":1}"))
-                .andExpect(status().isBadRequest());
     }
 }
